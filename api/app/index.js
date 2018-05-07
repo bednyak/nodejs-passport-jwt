@@ -1,6 +1,5 @@
 const express = require('express'),
     validator = require('express-validator'),
-    path = require('path'),
     cookieParser = require('cookie-parser'),
     bodyParser = require('body-parser'),
     index = require('./routers'),
@@ -20,7 +19,6 @@ app.use(bodyParser.json({ jsonLimit: '50mb' }));
 app.use(logger('dev'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors());
 app.use(
     validator({
