@@ -5,7 +5,6 @@ const express = require('express'),
     index = require('./routers'),
     config = require('./config'),
     logger = require('morgan'),
-    http = require('http'),
     cors = require('cors'),
     passport = require('passport'),
     session = require('express-session'),
@@ -48,12 +47,10 @@ app.use((err, req, res, next) => {
     });
 });
 
-const server = http.createServer(app);
-server.listen(port, err => {
+app.listen(port, err => {
     if (err) {
         return console.log('Server off-line', err);
     }
-
     console.log(`Server is listening on port ${port}`);
 });
 

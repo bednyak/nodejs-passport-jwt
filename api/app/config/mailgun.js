@@ -4,7 +4,7 @@ const api_key = 'key-d4f3acb3ccfa8690f67ceee0f8b01440',
 
 module.exports.sendEmail = (to, subject, text) => {
     const data = {
-        from: 'Excited User <me@samples.mailgun.org>',
+        from: 'NPLJ_Mail_Bot <nplj_bot@samples.mailgun.org>',
         to: to,
         subject: subject,
         text: text

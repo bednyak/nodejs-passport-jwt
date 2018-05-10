@@ -49,6 +49,12 @@ class AuthMapper {
         };
     }
 
+    loginFindTokenToRequest(userId) {
+        return {
+            userId: userId
+        };
+    }
+
     logoutToRequest(params) {
         return params.headers['authorization'].split(' ')[1];
     }
@@ -69,6 +75,25 @@ class AuthMapper {
         return {
             userId: params.id,
             hash: hash
+        };
+    }
+
+    setUpdateResetPasswordHashFields(params) {
+        return {
+            hash: params.hash
+        };
+    }
+
+    setUpdateResetPasswordHash(hash) {
+        return {
+            hash: hash
+        };
+    }
+
+    findResetPasswordHashToRequest(user) {
+        return {
+            userId: user.id,
+            status: false
         };
     }
 
@@ -99,7 +124,8 @@ class AuthMapper {
 
     setPasswordUpdateHashFields(userId) {
         return {
-            userId: userId
+            userId: userId,
+            status: false
         };
     }
 
@@ -107,6 +133,14 @@ class AuthMapper {
         return {
             status: status
         };
+    }
+
+    setLoginUpdateTokenFields(userId) {
+        return { userId: userId };
+    }
+
+    setLoginUpdateToken(token) {
+        return { token: token };
     }
 
     /**

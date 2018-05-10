@@ -14,7 +14,7 @@ class UserCredentialsDao {
         return db.UserCredentials.findOne({
             where: params
         }).catch(err => {
-            throw new Error(err.message);
+            throw err;
         });
     }
 
@@ -25,7 +25,7 @@ class UserCredentialsDao {
      */
     createCredential(params) {
         return db.UserCredentials.create(params).catch(err => {
-            throw new Error(err.message);
+            throw err;
         });
     }
 
@@ -42,7 +42,7 @@ class UserCredentialsDao {
                 credentials.update(params);
             })
             .catch(err => {
-                throw new Error(err.message);
+                throw err;
             });
     }
 }

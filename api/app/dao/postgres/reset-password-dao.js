@@ -14,7 +14,7 @@ class ResetPasswordDao {
         return db.ResetPasswords.findOne({
             where: params
         }).catch(err => {
-            throw new Error(err.message);
+            throw err;
         });
     }
 
@@ -25,7 +25,7 @@ class ResetPasswordDao {
      */
     createResetPasswordHash(params) {
         return db.ResetPasswords.create(params).catch(err => {
-            throw new Error(err.message);
+            throw err;
         });
     }
 
@@ -39,10 +39,10 @@ class ResetPasswordDao {
             where: fields
         })
             .then(invitation => {
-                invitation.update(params);
+                return invitation.update(params);
             })
             .catch(err => {
-                throw new Error(err.message);
+                throw err;
             });
     }
 }

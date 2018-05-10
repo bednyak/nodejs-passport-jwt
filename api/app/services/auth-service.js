@@ -3,7 +3,6 @@ const DaoFactory = require('../dao'),
     passport = require('../config/strategies'),
     bcrypt = require('bcryptjs'),
     _ = require('lodash'),
-    permissions = require('../config/permissions'),
     DatabaseError = require('../errors/database-error'),
     srs = require('secure-random-string'),
     mailgun = require('../config/mailgun');
@@ -43,6 +42,35 @@ class AuthService {
     saveToken(params) {
         return this._tokenDao
             .createUserToken(authMapper.loginSaveTokenToRequest(params))
+            .catch(err => {
+                throw new DatabaseError(err);
+            });
+    }
+
+    /**
+     * Update user access token
+     * @param {Object} params
+     * @return {Promise.<Object>}
+     */
+    updateToken(params) {
+        return this._tokenDao
+            .updateUserToken(
+                authMapper.setLoginUpdateTokenFields(params.userId),
+                authMapper.setLoginUpdateToken(params.token)
+            )
+            .catch(err => {
+                throw new DatabaseError(err);
+            });
+    }
+
+    /**
+     * Update user access token
+     * @param {Number} userId
+     * @return {Promise.<Object>}
+     */
+    findToken(userId) {
+        return this._tokenDao
+            .getUserToken(authMapper.loginFindTokenToRequest(userId))
             .catch(err => {
                 throw new DatabaseError(err);
             });
@@ -139,17 +167,32 @@ class AuthService {
      * @return {Promise.<Object>}
      */
     resetPassword(params) {
+        let userInfo = null;
         return this._userDao
             .getUser(authMapper.resetPasswordToRequest(params))
             .then(user => {
-                return this._resetPasswordDao.createResetPasswordHash(
-                    authMapper.createResetPasswordHashToRequest(user, srs())
+                userInfo = user;
+                return this._resetPasswordDao.getResetPasswordHash(
+                    authMapper.findResetPasswordHashToRequest(user)
                 );
+            })
+            .then(passwordHashDesc => {
+                if (!passwordHashDesc) {
+                    return this._resetPasswordDao.createResetPasswordHash(
+                        authMapper.createResetPasswordHashToRequest(userInfo, srs())
+                    );
+                }
+                else {
+                    return this._resetPasswordDao.updateResetPasswordHash(
+                        authMapper.setUpdateResetPasswordHashFields(passwordHashDesc),
+                        authMapper.setUpdateResetPasswordHash(srs())
+                    );
+                }
             })
             .then(resetPassword => {
                 let to = params.email;
-                let subject = 'MyProject password reset';
-                let text = `You was initiated the password resetting for MyProject acc. Please, press on link ${
+                let subject = 'NodePassportLocalJwt password reset';
+                let text = `You was initiated the password resetting for NodePassportLocalJwt acc. Please, press on link ${
                     params.urlHost
                 }/auth/set-password?hash=${resetPassword.hash} to finish registration`;
                 mailgun.sendEmail(to, subject, text);

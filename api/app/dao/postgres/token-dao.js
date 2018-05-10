@@ -6,7 +6,7 @@ const db = require('../../models/postgres');
  */
 class TokenDao {
     /**
-     * Get user description
+     * Get user access token
      * @param {Object} params
      * @return {Promise.<Object>}
      */
@@ -14,23 +14,40 @@ class TokenDao {
         return db.Tokens.findOne({
             where: params
         }).catch(err => {
-            throw new Error(err.message);
+            throw err;
         });
     }
 
     /**
-     * Create user description
+     * Create user access token
      * @param {Object} params
      * @return {Promise.<Object>}
      */
     createUserToken(params) {
         return db.Tokens.create(params).catch(err => {
-            throw new Error(err.message);
+            throw err;
         });
     }
 
     /**
-     * Delete user description
+     * Update user access token
+     * @param {Object} params
+     * @return {Promise.<Object>}
+     */
+    updateUserToken(fields, params) {
+        return db.Tokens.find({
+            where: fields
+        })
+            .then(credentials => {
+                return credentials.update(params);
+            })
+            .catch(err => {
+                throw err;
+            });
+    }
+
+    /**
+     * Delete user access token
      * @param {Object} params
      * @return {Promise.<Object>}
      */
@@ -38,7 +55,7 @@ class TokenDao {
         return db.Tokens.destroy({
             where: params
         }).catch(err => {
-            throw new Error(err.message);
+            throw err;
         });
     }
 }

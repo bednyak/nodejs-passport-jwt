@@ -2,11 +2,11 @@ const { Client } = require('pg');
 
 const config = require('../../api/app/config');
 
-const dbUser = config.database.user
-    , dbPassword = config.database.password
-    , dbHost = config.database.host
-    , dbPort = config.database.port
-    , dbName = config.database.name;
+const dbUser = config.database.user,
+    dbPassword = config.database.password,
+    dbHost = config.database.host,
+    dbPort = config.database.port,
+    dbName = config.database.name;
 
 console.log(`postgres://${dbUser}:${dbPassword}@${dbHost}:${dbPort}/postgres`);
 
@@ -17,4 +17,3 @@ client.connect();
 client.query(`CREATE DATABASE ${dbName}`, () => {
     client.end();
 });
-

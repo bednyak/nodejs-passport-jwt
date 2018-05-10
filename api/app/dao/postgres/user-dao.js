@@ -12,7 +12,7 @@ class UserDao {
      */
     getUserById(id) {
         return db.Users.findById(id).catch(err => {
-            throw new Error(err.message);
+            throw err;
         });
     }
 
@@ -25,20 +25,7 @@ class UserDao {
         return db.Users.findOne({
             where: params
         }).catch(err => {
-            throw new Error(err.message);
-        });
-    }
-
-    /**
-     * Get all users
-     * @param {Object} params
-     * @return {Promise.<Object>}
-     */
-    getAllUsers(params) {
-        return db.Users.findAll({
-            where: params
-        }).catch(err => {
-            throw new Error(err.message);
+            throw err;
         });
     }
 
@@ -49,26 +36,8 @@ class UserDao {
      */
     createUser(params) {
         return db.Users.create(params).catch(err => {
-            throw new Error(err.message);
+            throw err;
         });
-    }
-
-    /**
-     * Update user
-     * @param {Object} fields
-     * @param {Object} params
-     * @return {Promise.<Object>}
-     */
-    updateUser(fields, params) {
-        return db.Users.find({
-            where: fields
-        })
-            .then(user => {
-                return user.update(params);
-            })
-            .catch(err => {
-                throw new Error(err.message);
-            });
     }
 }
 

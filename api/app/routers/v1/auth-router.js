@@ -1,5 +1,4 @@
 const express = require('express'),
-    DaoFactory = require('../../dao'),
     authService = require('../../services/auth-service'),
     authMapper = require('../../mappers/auth-mapper'),
     ValidationError = require('../../errors/validation-error'),
@@ -20,11 +19,11 @@ const jwt = require('jsonwebtoken');
  * @return 422 Validation failed
  */
 router.post('/auth/signup', (req, res, next) => {
-    req.checkBody('firstName', 'Firstname can\'t be empty').notEmpty();
-    req.checkBody('lastName', 'Lasttname can\'t be empty').notEmpty();
-    req.checkBody('email', 'Email can\'t be empty').notEmpty();
+    req.checkBody('firstName', 'Firstname can not be empty').notEmpty();
+    req.checkBody('lastName', 'Lastname can not be empty').notEmpty();
+    req.checkBody('email', 'Email can not be empty').notEmpty();
     req.checkBody('email', 'Enter the valid email.').isEmail();
-    req.checkBody('password', 'Password can\'t be empty').notEmpty();
+    req.checkBody('password', 'Password can not be empty').notEmpty();
     if (req.body.phoneNumber)
         req.checkBody('phoneNumber', 'Phone number must contain only numeric symbols').isNumeric();
     let errors = req.validationErrors();
@@ -83,6 +82,7 @@ router.post('/auth/login', (req, res, next) => {
         }
         req.logIn(user, err => {
             let loginResData = null;
+            let genToken = null;
             let params = {};
             if (err) {
                 return next(new DatabaseError(err));
@@ -95,9 +95,19 @@ router.post('/auth/login', (req, res, next) => {
                     return token;
                 })
                 .then(token => {
-                    params.userId = user.id;
-                    params.token = token;
-                    return authService.saveToken(params);
+                    genToken = token;
+                    return authService.findToken(user.id);
+                })
+                .then(tokenDesc => {
+                    if (!tokenDesc) {
+                        params.userId = user.id;
+                        params.token = genToken;
+                        return authService.saveToken(params);
+                    } else {
+                        params.userId = user.id;
+                        params.token = tokenDesc.token;
+                        return authService.updateToken(params);
+                    }
                 })
                 .then(userToken => {
                     loginResData.token = {
@@ -174,7 +184,7 @@ router.use('', (req, res, next) => {
  * @return 422 Validation failed
  */
 router.post('/auth/reset-password', (req, res, next) => {
-    req.checkBody('email', 'Email can\'t be empty').notEmpty();
+    req.checkBody('email', 'Email can not be empty').notEmpty();
     req.checkBody('email', 'Enter the valid email.').isEmail();
 
     let errors = req.validationErrors();
@@ -221,8 +231,8 @@ router.post('/auth/reset-password', (req, res, next) => {
  * @return 401 URL hash incompatible
  */
 router.post('/auth/set-password', (req, res, next) => {
-    req.checkQuery('hash', 'hash can\'t be empty').notEmpty();
-    req.checkBody('password', 'Password can\'t be empty').notEmpty();
+    req.checkQuery('hash', 'Hash can not be empty').notEmpty();
+    req.checkBody('password', 'Password can not be empty').notEmpty();
 
     let errors = req.validationErrors();
 

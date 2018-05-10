@@ -1,6 +1,5 @@
 const DaoFactory = require('../dao'),
     DatabaseError = require('../errors/database-error'),
-    ServerError = require('../errors/server-error'),
     userMapper = require('../mappers/user-mapper');
 
 /**
@@ -35,62 +34,6 @@ class UserService {
             })
             .catch(err => {
                 throw new DatabaseError(err);
-            });
-    }
-
-    /**
-     * Update user profile info
-     * @param {Object} params
-     * @return {Promise.<Object>}
-     */
-    updateUserProfile(params) {
-        let updatedUserProfile = {};
-        return this._roleDescriptionsDao
-            .getRoleDescription({
-                name: params.role
-            })
-            .then(roleDesc => {
-                if (!roleDesc)
-                    throw new ServerError(
-                        'Role with such name is un-existed',
-                        422,
-                        'Update user error',
-                        'set new role',
-                        'role'
-                    );
-
-                updatedUserProfile.roleDesc = roleDesc;
-                return this._userDao.updateUser(
-                    {
-                        id: params.userId
-                    },
-                    {
-                        roleId: roleDesc.id
-                    }
-                );
-            })
-            .then(user => {
-                updatedUserProfile.user = user;
-                return this._userDescriptionsDao.updateUserDescription(
-                    {
-                        userId: params.userId
-                    },
-                    {
-                        firstName: params.firstName,
-                        lastName: params.lastName,
-                        email: params.email,
-                        title: params.title,
-                        companyId: params.companyId,
-                        phoneNumberWork: params.phoneNumber
-                    }
-                );
-            })
-            .then(userDesc => {
-                updatedUserProfile.userDesc = userDesc;
-                return userMapper.updateUserProfileToResponse(updatedUserProfile);
-            })
-            .catch(err => {
-                throw err;
             });
     }
 }

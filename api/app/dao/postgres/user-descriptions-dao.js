@@ -14,7 +14,7 @@ class UserDescriptionsDao {
         return db.UserDescriptions.findOne({
             where: params
         }).catch(err => {
-            throw new Error(err.message);
+            throw err;
         });
     }
 
@@ -25,26 +25,8 @@ class UserDescriptionsDao {
      */
     createUserDescription(params) {
         return db.UserDescriptions.create(params).catch(err => {
-            throw new Error(err.message);
+            throw err;
         });
-    }
-
-    /**
-     * Update user description
-     * @param {Object} fields
-     * @param {Object} params
-     * @return {Promise.<Object>}
-     */
-    updateUserDescription(fields, params) {
-        return db.UserDescriptions.find({
-            where: fields
-        })
-            .then(userDesc => {
-                return userDesc.update(params);
-            })
-            .catch(err => {
-                throw new Error(err.message);
-            });
     }
 }
 
