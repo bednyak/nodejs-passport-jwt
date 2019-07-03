@@ -107,32 +107,34 @@ class AuthService {
      */
     signup(params) {
         let userData = null;
-        return this._userDao
-            .createUser(authMapper.registerUserToRequest('user', params, null))
-            .then(user => {
-                userData = user;
-                const password = params.password;
-                const salt = bcrypt.genSaltSync();
-                const hash = bcrypt.hashSync(password, salt);
-                return this._userCredentialsDao.createCredential(
-                    authMapper.registerUserToRequest('userCred', { hash, salt }, userData.id)
-                );
-            })
-            .then(() => {
-                return this._userDescriptionsDao.createUserDescription(
-                    authMapper.registerUserToRequest('userDesc', params, userData.id)
-                );
-            })
-            .then(() => {
-                passport.authenticate('local', (err, user, info) => {
-                    if (user) {
-                        return user;
-                    }
-                });
-            })
-            .catch(err => {
-                throw new DatabaseError(err);
-            });
+        return (
+            this._userDao
+                .createUser(authMapper.registerUserToRequest('user', params, null))
+                .then(user => {
+                    userData = user;
+                    const password = params.password;
+                    const salt = bcrypt.genSaltSync();
+                    const hash = bcrypt.hashSync(password, salt);
+                    return this._userCredentialsDao.createCredential(
+                        authMapper.registerUserToRequest('userCred', { hash, salt }, userData.id)
+                    );
+                })
+                .then(() => {
+                    return this._userDescriptionsDao.createUserDescription(
+                        authMapper.registerUserToRequest('userDesc', params, userData.id)
+                    );
+                })
+                // .then(() => {
+                //     passport.authenticate('jwt', { session: false }, (err, user, info) => {
+                //         if (user) {
+                //             return user;
+                //         }
+                //     });
+                // })
+                .catch(err => {
+                    throw new DatabaseError(err);
+                })
+        );
     }
 
     /**
@@ -181,8 +183,7 @@ class AuthService {
                     return this._resetPasswordDao.createResetPasswordHash(
                         authMapper.createResetPasswordHashToRequest(userInfo, srs())
                     );
-                }
-                else {
+                } else {
                     return this._resetPasswordDao.updateResetPasswordHash(
                         authMapper.setUpdateResetPasswordHashFields(passwordHashDesc),
                         authMapper.setUpdateResetPasswordHash(srs())

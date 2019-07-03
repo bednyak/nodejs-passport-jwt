@@ -6,7 +6,12 @@ const express = require('express'),
     DatabaseError = require('../../errors/database-error'),
     config = require('../../config'),
     passport = require('../../config/strategies'),
-    router = express.Router();
+    router = express.Router(),
+    DaoFactory = require('../../dao'),
+    userDao = DaoFactory.loadDao('user-dao'),
+    userCredentialsDao = DaoFactory.loadDao('user-credentials-dao'),
+    bcrypt = require('bcryptjs'),
+    authHelpers = require('../../utils/auth-helpers');
 
 const jwt = require('jsonwebtoken');
 
@@ -65,61 +70,125 @@ router.post('/auth/signup', (req, res, next) => {
  * @return 500 Login failed
  * @return 422 Validation failed
  */
+// router.post('/auth/login', (req, res, next) => {
+//     passport.authenticate('jwt', { session: false }, (err, user, info) => {
+//         if (err) {
+//             return next(new DatabaseError(err));
+//         }
+//         if (user === 'userNotFound') {
+//             return next(
+//                 new ServerError('User not found.', 422, 'Login error', 'user login', 'email')
+//             );
+//         }
+//         if (user === 'wrongPassword') {
+//             return next(
+//                 new ServerError('Wrong password.', 422, 'Login error', 'user login', 'password')
+//             );
+//         }
+//         req.logIn(user, err => {
+//             let loginResData = null;
+//             let genToken = null;
+//             let params = {};
+//             if (err) {
+//                 return next(new DatabaseError(err));
+//             }
+//             authService
+//                 .login(user)
+//                 .then(loginRes => {
+//                     loginResData = loginRes;
+//                     const token = jwt.sign(user.toJSON(), config.jwtSecretKey);
+//                     return token;
+//                 })
+//                 .then(token => {
+//                     genToken = token;
+//                     return authService.findToken(user.id);
+//                 })
+//                 .then(tokenDesc => {
+//                     if (!tokenDesc) {
+//                         params.userId = user.id;
+//                         params.token = genToken;
+//                         return authService.saveToken(params);
+//                     } else {
+//                         params.userId = user.id;
+//                         params.token = tokenDesc.token;
+//                         return authService.updateToken(params);
+//                     }
+//                 })
+//                 .then(userToken => {
+//                     loginResData.token = {
+//                         access_token: userToken.token
+//                     };
+//                     return res.status(200).json(authMapper.loginToResponse(loginResData));
+//                 })
+//                 .catch(err => {
+//                     return next(new DatabaseError(err));
+//                 });
+//         });
+//     })(req, res, next);
+// });
+
 router.post('/auth/login', (req, res, next) => {
-    passport.authenticate('local', { session: false }, (err, user, info) => {
-        if (err) {
-            return next(new DatabaseError(err));
-        }
-        if (user === 'userNotFound') {
-            return next(
-                new ServerError('User not found.', 422, 'Login error', 'user login', 'email')
-            );
-        }
-        if (user === 'wrongPassword') {
-            return next(
-                new ServerError('Wrong password.', 422, 'Login error', 'user login', 'password')
-            );
-        }
-        req.logIn(user, err => {
-            let loginResData = null;
-            let genToken = null;
-            let params = {};
-            if (err) {
-                return next(new DatabaseError(err));
+    const username = req.body.username;
+    const password = req.body.password;
+
+    // userDao
+    //     .getUser({
+    //         username
+    //     })
+    //     .then(user => {
+    //         if (!user) return done(null, 'userNotFound');
+    //         userData = user;
+    //         return userCredentialsDao.getCredential({
+    //             userId: user.id
+    //         });
+    //     })
+
+    userDao
+        .getUser({ username })
+        .then(user => {
+            if (!user) {
+                return next(
+                    new ServerError('User not found.', 422, 'Login error', 'user login', 'email')
+                );
             }
-            authService
-                .login(user)
-                .then(loginRes => {
-                    loginResData = loginRes;
-                    const token = jwt.sign(user.toJSON(), config.jwtSecretKey);
-                    return token;
-                })
-                .then(token => {
-                    genToken = token;
-                    return authService.findToken(user.id);
-                })
-                .then(tokenDesc => {
-                    if (!tokenDesc) {
-                        params.userId = user.id;
-                        params.token = genToken;
-                        return authService.saveToken(params);
-                    } else {
-                        params.userId = user.id;
-                        params.token = tokenDesc.token;
-                        return authService.updateToken(params);
-                    }
-                })
-                .then(userToken => {
-                    loginResData.token = {
-                        access_token: userToken.token
-                    };
-                    return res.status(200).json(authMapper.loginToResponse(loginResData));
-                })
-                .catch(err => {
-                    return next(new DatabaseError(err));
+            return user;
+        })
+        .then(user => {
+            return userCredentialsDao.getCredential({
+                userId: user.id
+            });
+        })
+        .then(cred => {
+            if (!authHelpers.comparePass(password, cred.password)) {
+                return next(
+                    new ServerError('Wrong password.', 422, 'Login error', 'user login', 'password')
+                );
+            }
+            const payload = {
+                id: cred.userId,
+                name: username
+            };
+            jwt.sign(payload, config.jwtSecretKey, { expiresIn: 36000 }, (err, token) => {
+                if (err) {
+                    return next(
+                        new ServerError(
+                            'Error signing token.',
+                            422,
+                            'Login error',
+                            'user login',
+                            'token'
+                        )
+                    );
+                }
+                res.json({
+                    success: true,
+                    token: token
                 });
+            });
+        })
+        .catch(err => {
+            return next(new DatabaseError(err));
         });
-    })(req, res, next);
 });
 
 /**

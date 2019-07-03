@@ -8,7 +8,7 @@ module.exports = {
     dialect: process.env.DIALECT || 'postgres',
 
     database: {
-        name: process.env.DB_NAME || 'nodepassportlocaljwt',
+        name: process.env.DB_NAME || 'mydb',
         user: process.env.DB_USERNAME || 'postgres',
         password: process.env.DB_PASSWORD || 'postgres',
         host: process.env.DB_HOST || 'localhost',
