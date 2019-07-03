@@ -24,15 +24,15 @@ app.use(
         customValidators
     })
 );
-app.use(
-    session({
-        secret: config.secretKey,
-        resave: false,
-        saveUninitialized: false
-    })
-);
+// app.use(
+//     session({
+//         secret: config.secretKey,
+//         resave: false,
+//         saveUninitialized: false
+//     })
+// );
 app.use(passport.initialize());
-app.use(passport.session());
+//app.use(passport.session());
 
 app.use('/', index);
 

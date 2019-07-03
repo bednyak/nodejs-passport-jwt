@@ -2,11 +2,17 @@ const DaoFactory = require('../dao'),
     authMapper = require('../mappers/auth-mapper'),
     passport = require('../config/strategies'),
     bcrypt = require('bcryptjs'),
+    config = require('../config'),
     _ = require('lodash'),
     DatabaseError = require('../errors/database-error'),
     srs = require('secure-random-string'),
-    mailgun = require('../config/mailgun');
+    ServerError = require('../errors/server-error'),
+    mailgun = require('../config/mailgun'),
+    userDao = DaoFactory.loadDao('user-dao'),
+    userCredentialsDao = DaoFactory.loadDao('user-credentials-dao'),
+    authHelpers = require('../utils/auth-helpers');
 
+const jwt = require('jsonwebtoken');
 /**
  * Auth service
  * @class AuthService
@@ -15,7 +21,6 @@ class AuthService {
     constructor() {
         this._userDao = DaoFactory.loadDao('user-dao');
         this._userDescriptionsDao = DaoFactory.loadDao('user-descriptions-dao');
-        this._tokenDao = DaoFactory.loadDao('token-dao');
         this._userCredentialsDao = DaoFactory.loadDao('user-credentials-dao');
         this._roleDescriptionsDao = DaoFactory.loadDao('role-descriptions-dao');
         this._resetPasswordDao = DaoFactory.loadDao('reset-password-dao');
@@ -32,59 +37,6 @@ class AuthService {
             .catch(err => {
                 throw new DatabaseError(err);
             });
-    }
-
-    /**
-     * Save user access token
-     * @param {Object} params
-     * @return {Promise.<Object>}
-     */
-    saveToken(params) {
-        return this._tokenDao
-            .createUserToken(authMapper.loginSaveTokenToRequest(params))
-            .catch(err => {
-                throw new DatabaseError(err);
-            });
-    }
-
-    /**
-     * Update user access token
-     * @param {Object} params
-     * @return {Promise.<Object>}
-     */
-    updateToken(params) {
-        return this._tokenDao
-            .updateUserToken(
-                authMapper.setLoginUpdateTokenFields(params.userId),
-                authMapper.setLoginUpdateToken(params.token)
-            )
-            .catch(err => {
-                throw new DatabaseError(err);
-            });
-    }
-
-    /**
-     * Update user access token
-     * @param {Number} userId
-     * @return {Promise.<Object>}
-     */
-    findToken(userId) {
-        return this._tokenDao
-            .getUserToken(authMapper.loginFindTokenToRequest(userId))
-            .catch(err => {
-                throw new DatabaseError(err);
-            });
-    }
-
-    /**
-     * Delete user access token
-     * @param {String} token
-     * @return {Promise.<Object>}
-     */
-    deleteToken(token) {
-        return this._tokenDao.deleteUserToken(authMapper.deleteTokenToRequest(token)).catch(err => {
-            throw new DatabaseError(err);
-        });
     }
 
     /**
@@ -142,25 +94,42 @@ class AuthService {
      * @param {Object} params
      * @return {Promise.<Object>}
      */
-    login(params) {
-        let loginRes = {};
-
-        if (params.roleId === 2) {
-            return this._userDescriptionsDao
-                .getUserDescription(authMapper.loginToRequest(params))
-                .then(userDesc => {
-                    loginRes.user = {
-                        firstName: userDesc.firstName,
-                        lastName: userDesc.lastName,
-                        email: userDesc.email,
-                        phoneNumber: userDesc.phoneNumber
-                    };
-                    return loginRes;
-                })
-                .catch(err => {
-                    throw new DatabaseError(err);
+    login(username, password) {
+        return userDao
+            .getUser({ username })
+            .then(user => {
+                if (!user) {
+                    throw new ServerError(
+                        'User not found.',
+                        422,
+                        'Login error',
+                        'user login',
+                        'email'
+                    );
+                }
+                return user;
+            })
+            .then(user => {
+                return userCredentialsDao.getCredential({
+                    userId: user.id
                 });
-        }
+            })
+            .then(cred => {
+                if (!authHelpers.comparePass(password, cred.password)) {
+                    throw new ServerError(
+                        'Wrong password.',
+                        422,
+                        'Login error',
+                        'user login',
+                        'password'
+                    );
+                }
+
+                return {
+                    id: cred.userId,
+                    name: username
+                };
+            });
     }
 
     /**

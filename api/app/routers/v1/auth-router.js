@@ -131,43 +131,9 @@ router.post('/auth/login', (req, res, next) => {
     const username = req.body.username;
     const password = req.body.password;
 
-    // userDao
-    //     .getUser({
-    //         username
-    //     })
-    //     .then(user => {
-    //         if (!user) return done(null, 'userNotFound');
-    //         userData = user;
-    //         return userCredentialsDao.getCredential({
-    //             userId: user.id
-    //         });
-    //     })
-
-    userDao
-        .getUser({ username })
-        .then(user => {
-            if (!user) {
-                return next(
-                    new ServerError('User not found.', 422, 'Login error', 'user login', 'email')
-                );
-            }
-            return user;
-        })
-        .then(user => {
-            return userCredentialsDao.getCredential({
-                userId: user.id
-            });
-        })
-        .then(cred => {
-            if (!authHelpers.comparePass(password, cred.password)) {
-                return next(
-                    new ServerError('Wrong password.', 422, 'Login error', 'user login', 'password')
-                );
-            }
-            const payload = {
-                id: cred.userId,
-                name: username
-            };
+    authService
+        .login(username, password)
+        .then(payload => {
             jwt.sign(payload, config.jwtSecretKey, { expiresIn: 36000 }, (err, token) => {
                 if (err) {
                     return next(
@@ -187,8 +153,20 @@ router.post('/auth/login', (req, res, next) => {
             });
         })
         .catch(err => {
-            return next(new DatabaseError(err));
+            return next(err);
         });
+
+    // userDao
+    //     .getUser({
+    //         username
+    //     })
+    //     .then(user => {
+    //         if (!user) return done(null, 'userNotFound');
+    //         userData = user;
+    //         return userCredentialsDao.getCredential({
+    //             userId: user.id
+    //         });
+    //     })
 });
 
 /**
