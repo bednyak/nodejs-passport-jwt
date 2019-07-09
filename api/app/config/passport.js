@@ -1,20 +1,28 @@
 const passport = require('passport'),
     DaoFactory = require('../dao'),
-    userDao = DaoFactory.loadDao('user-dao');
+    userDao = DaoFactory.loadDao('user-dao'),
+    config = require('../config'),
+    passportJWT = require('passport-jwt'),
+    ExtractJWT = passportJWT.ExtractJwt,
+    JWTStrategy = passportJWT.Strategy;
 
-module.exports = () => {
-    // passport.serializeUser((user, done) => {
-    //     done(null, user.id);
-    // });
-    //
-    // passport.deserializeUser((id, done) => {
-    //     userDao
-    //         .getUserById(id)
-    //         .then(user => {
-    //             done(null, user);
-    //         })
-    //         .catch(err => {
-    //             done(err, null);
-    //         });
-    // });
-};
+passport.use(
+    new JWTStrategy(
+        {
+            jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
+            secretOrKey: config.jwtSecretKey
+        },
+        (jwtPayload, cb) => {
+            return userDao
+                .getUserById(jwtPayload.id)
+                .then(user => {
+                    return cb(null, user);
+                })
+                .catch(err => {
+                    return cb(err);
+                });
+        }
+    )
+);
+
+module.exports = passport;

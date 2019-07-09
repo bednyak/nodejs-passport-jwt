@@ -7,7 +7,6 @@ const express = require('express'),
     logger = require('morgan'),
     cors = require('cors'),
     passport = require('passport'),
-    session = require('express-session'),
     customValidators = require('../app/config/custom-validators');
 
 const app = express();
@@ -24,15 +23,7 @@ app.use(
         customValidators
     })
 );
-// app.use(
-//     session({
-//         secret: config.secretKey,
-//         resave: false,
-//         saveUninitialized: false
-//     })
-// );
 app.use(passport.initialize());
-//app.use(passport.session());
 
 app.use('/', index);
 
@@ -57,13 +48,9 @@ app.listen(port, err => {
 function normalizePort(val) {
     const port = parseInt(val, 10);
 
-    if (isNaN(port)) {
-        return val;
-    }
+    if (isNaN(port)) return val;
 
-    if (port >= 0) {
-        return port;
-    }
+    if (port >= 0) return port;
 
     return false;
 }

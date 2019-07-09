@@ -1,9 +1,6 @@
 const DaoFactory = require('../dao'),
     authMapper = require('../mappers/auth-mapper'),
-    passport = require('../config/strategies'),
     bcrypt = require('bcryptjs'),
-    config = require('../config'),
-    _ = require('lodash'),
     DatabaseError = require('../errors/database-error'),
     srs = require('secure-random-string'),
     ServerError = require('../errors/server-error'),
@@ -12,7 +9,6 @@ const DaoFactory = require('../dao'),
     userCredentialsDao = DaoFactory.loadDao('user-credentials-dao'),
     authHelpers = require('../utils/auth-helpers');
 
-const jwt = require('jsonwebtoken');
 /**
  * Auth service
  * @class AuthService
@@ -28,7 +24,7 @@ class AuthService {
 
     /**
      * User exist validation
-     * @param {Object} params
+     * @params {Object} params
      * @return {Promise.<Object>}
      */
     validationUserExist(params) {
@@ -41,7 +37,7 @@ class AuthService {
 
     /**
      * Reset password hash exist validation
-     * @param {Object} params
+     * @params {Object} params
      * @return {Promise.<Object>}
      */
     setPasswordValidationHashExist(params) {
@@ -53,50 +49,42 @@ class AuthService {
     }
 
     /**
-     * Register company
-     * @param {Object} params
+     * Register user
+     * @params {Object} params
      * @return {Promise.<Object>}
      */
     signup(params) {
         let userData = null;
-        return (
-            this._userDao
-                .createUser(authMapper.registerUserToRequest('user', params, null))
-                .then(user => {
-                    userData = user;
-                    const password = params.password;
-                    const salt = bcrypt.genSaltSync();
-                    const hash = bcrypt.hashSync(password, salt);
-                    return this._userCredentialsDao.createCredential(
-                        authMapper.registerUserToRequest('userCred', { hash, salt }, userData.id)
-                    );
-                })
-                .then(() => {
-                    return this._userDescriptionsDao.createUserDescription(
-                        authMapper.registerUserToRequest('userDesc', params, userData.id)
-                    );
-                })
-                // .then(() => {
-                //     passport.authenticate('jwt', { session: false }, (err, user, info) => {
-                //         if (user) {
-                //             return user;
-                //         }
-                //     });
-                // })
-                .catch(err => {
-                    throw new DatabaseError(err);
-                })
-        );
+        return this._userDao
+            .createUser(authMapper.registerUserToRequest('user', params, null))
+            .then(user => {
+                userData = user;
+                const password = params.password;
+                const salt = bcrypt.genSaltSync();
+                const hash = bcrypt.hashSync(password, salt);
+                return this._userCredentialsDao.createCredential(
+                    authMapper.registerUserToRequest('userCred', { hash, salt }, userData.id)
+                );
+            })
+            .then(() => {
+                return this._userDescriptionsDao.createUserDescription(
+                    authMapper.registerUserToRequest('userDesc', params, userData.id)
+                );
+            })
+            .catch(err => {
+                throw new DatabaseError(err);
+            });
     }
 
     /**
-     * Login company
-     * @param {Object} params
+     * Login user
+     * @params {Object} params
      * @return {Promise.<Object>}
      */
-    login(username, password) {
+    login(params) {
+        const userLoginData = {};
         return userDao
-            .getUser({ username })
+            .getUser({ username: params.email })
             .then(user => {
                 if (!user) {
                     throw new ServerError(
@@ -110,12 +98,16 @@ class AuthService {
                 return user;
             })
             .then(user => {
+                userLoginData.id = user.id;
+                userLoginData.username = user.username;
+                userLoginData.roleId = user.roleId;
+
                 return userCredentialsDao.getCredential({
                     userId: user.id
                 });
             })
             .then(cred => {
-                if (!authHelpers.comparePass(password, cred.password)) {
+                if (!authHelpers.comparePass(params.password, cred.password)) {
                     throw new ServerError(
                         'Wrong password.',
                         422,
@@ -125,16 +117,13 @@ class AuthService {
                     );
                 }
 
-                return {
-                    id: cred.userId,
-                    name: username
-                };
+                return userLoginData;
             });
     }
 
     /**
      * Send email for initialize password resetting
-     * @param {Object} params
+     * @params {Object} params
      * @return {Promise.<Object>}
      */
     resetPassword(params) {
@@ -160,11 +149,11 @@ class AuthService {
                 }
             })
             .then(resetPassword => {
-                let to = params.email;
-                let subject = 'NodePassportLocalJwt password reset';
-                let text = `You was initiated the password resetting for NodePassportLocalJwt acc. Please, press on link ${
+                const to = params.email;
+                const subject = 'NodePassportLocalJwt password reset';
+                const text = `You was initiated the password resetting for NodePassportLocalJwt acc. Please, press on link ${
                     params.urlHost
-                }/auth/set-password?hash=${resetPassword.hash} to finish registration`;
+                }/api/user/set-password?hash=${resetPassword.hash} to finish registration`;
                 mailgun.sendEmail(to, subject, text);
             })
             .catch(err => {
@@ -174,7 +163,7 @@ class AuthService {
 
     /**
      * Set new password
-     * @param {Object} params
+     * @params {Object} params
      * @return {Promise.<Object>}
      */
     setPassword(params) {

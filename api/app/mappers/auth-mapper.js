@@ -1,5 +1,3 @@
-const _ = require('lodash');
-
 /**
  * Auth mapper
  * @class AuthMapper
@@ -33,35 +31,6 @@ class AuthMapper {
     registerValidationUserExistToRequest(params) {
         return {
             username: params.email
-        };
-    }
-
-    loginToRequest(params) {
-        return {
-            userId: params.id
-        };
-    }
-
-    loginSaveTokenToRequest(params) {
-        return {
-            userId: params.userId,
-            token: params.token
-        };
-    }
-
-    loginFindTokenToRequest(userId) {
-        return {
-            userId: userId
-        };
-    }
-
-    logoutToRequest(params) {
-        return params.headers['authorization'].split(' ')[1];
-    }
-
-    deleteTokenToRequest(token) {
-        return {
-            token: token
         };
     }
 
