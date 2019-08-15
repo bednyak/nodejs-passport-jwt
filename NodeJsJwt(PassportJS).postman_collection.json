@@ -1,0 +1,244 @@
+{
+	"info": {
+		"_postman_id": "a417b8bd-8955-48a7-958d-4d6b14402b1f",
+		"name": "NodeJsJwt(PassportJS)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Auth signup",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n   \"firstName\": \"Andrew\",\n   \"lastName\": \"Bednyak\",\n   \"email\": \"bednyak.ao@gmail.com\",\n   \"password\": \"12345678\",\n   \"phoneNumber\": \"2345464534\"\n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/auth/signup",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signup"
+							]
+						},
+						"description": "body:\n {\n   \"firstName\": \"Andrew\", // mandatory field\n   \"lastName\": \"Bednyak\", // mandatory field\n   \"email\": \"bednyak.ao@gmail.com\", // mandatory field, must be an email\n   \"password\": \"12345678\", // mandatory field\n   \"phoneNumber\": \"2345464534\" // must contain only numeric symbols\n }"
+					},
+					"response": []
+				},
+				{
+					"name": "Auth login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "cbe2d835-fbc4-4d3c-af9f-8a1c9932764f",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setEnvironmentVariable(\"token\", jsonData.access_token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\": \"bednyak.ao@gmail.com\",\n\t\"password\": \"1234567890\"  \n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/auth/login",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send reset password email",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\": \"bednyak.ao@gmail.com\"\n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/user/reset-password",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"reset-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"password\": \"1234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/user/set-password?hash=0tw5ImVZF9JFLjDOIA6VOG2O1V2e_bQg",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"set-password"
+							],
+							"query": [
+								{
+									"key": "hash",
+									"value": "0tw5ImVZF9JFLjDOIA6VOG2O1V2e_bQg"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Get user profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/user/profile",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Status",
+			"item": [
+				{
+					"name": "Check service status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/status",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check service health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/health",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"health"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "dd03bf40-bbcd-4555-a408-21bb7aa6c2dd",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "09496eac-1ba9-4902-8279-896ed643a6a9",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

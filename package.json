@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "export URL_HOST=skydot-front.yalantis.com && node ./api/app",
-    "dev": "node ./api/app",
+    "start": "node ./api/app",
+    "docker": "./scripts/dev.sh",
     "nodemon": "nodemon ./api/app",
     "create-db": "node ./migrations/scripts/create-db.js",
     "db-migrate-create": "sequelize migration:create --name [new_migration_name]",

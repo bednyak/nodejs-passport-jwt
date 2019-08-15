@@ -2,7 +2,7 @@ const config = require('./../config');
 
 class DaoFactory {
     loadDao(daoName) {
-        return require(`./../dao/${config.dialect}/${daoName}`);
+        return require(`./../dao/${config.database.dialect}/${daoName}`);
     }
 }
 

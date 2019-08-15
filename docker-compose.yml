@@ -1,9 +1,22 @@
 
 version: "3"
 services:
-  njs.jwtseq.service:
+  njs.jwt.service:
     build: .
-    container_name: "njs.jwtseq.service"
+    container_name: "njs.jwt.service"
+    environment:
+      NODE_ENV: "development"
+      HOST: "http://localhost"
+      PORT: 4000
+      SECRET: "mY.pRoJ#sEcReT"
+      JWT_SECRET: "mY.pRoJ#sEcReT#jWt"
+      DB_NAME: "njsjwtdev"
+      DB_USERNAME: "postgres"
+      DB_PASSWORD: "postgres"
+      DB_HOST: "postgresql"
+      DB_DIALECT: "postgres"
+      DB_PORT: 5432
+      URL_HOST: "localhost:4000"
     ports:
       - "4000:4000"
     depends_on:
@@ -13,8 +26,8 @@ services:
     image: postgres
     restart: always
     environment:
-      - POSTGRES_DB: 'postgres'
-      - POSTGRES_USER: 'postgres'
-      - POSTGRES_PASSWORD: 'postgres'
+      POSTGRES_DB: 'njsjwtdev'
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'postgres'
     ports:
       - '5432:5432'

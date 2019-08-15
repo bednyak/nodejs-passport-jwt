@@ -5,14 +5,13 @@ module.exports = {
     port: process.env.PORT || 4000,
     secretKey: process.env.SECRET || 'mY.pRoJ#sEcReT',
     jwtSecretKey: process.env.JWT_SECRET || 'mY.pRoJ#sEcReT#jWt',
-    dialect: process.env.DIALECT || 'postgres',
 
     database: {
-        name: process.env.DB_NAME || 'mydb',
+        name: process.env.DB_NAME || 'njsjwtdev',
         user: process.env.DB_USERNAME || 'postgres',
         password: process.env.DB_PASSWORD || 'postgres',
         host: process.env.DB_HOST || 'localhost',
-        dialect: process.env.DB_DIALECT || 'postgresql',
+        dialect: process.env.DB_DIALECT || 'postgres',
         port: process.env.DB_PORT || 5432
     },
 

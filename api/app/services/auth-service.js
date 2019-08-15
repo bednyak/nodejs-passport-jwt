@@ -150,8 +150,8 @@ class AuthService {
             })
             .then(resetPassword => {
                 const to = params.email;
-                const subject = 'NodePassportLocalJwt password reset';
-                const text = `You was initiated the password resetting for NodePassportLocalJwt acc. Please, press on link ${
+                const subject = 'NjsJwt password reset';
+                const text = `You was initiated the password resetting for NjsJwt acc. Please, press on link ${
                     params.urlHost
                 }/api/user/set-password?hash=${resetPassword.hash} to finish registration`;
                 mailgun.sendEmail(to, subject, text);
